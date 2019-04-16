@@ -1,1 +1,5 @@
 *.swp
+.vscode
+.idea
+target
+*.iml
