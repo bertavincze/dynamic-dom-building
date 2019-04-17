@@ -2,7 +2,63 @@ const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
 let usersDivEl;
 let postsDivEl;
+let commentsDivEl;
 let loadButtonEl;
+
+function createCommentsList(comments) {
+    const ulEl = document.createElement('ul');
+    ulEl.classList.add('comments');
+
+    for (let i = 0; i < comments.length; i++) {
+        const comment = comments[i];
+        ulEl.setAttribute('id', comment.postId);
+
+        // creating paragraph
+        const strongEl = document.createElement('strong');
+        strongEl.textContent = comment.name;
+
+        const pEl = document.createElement('p');
+        pEl.appendChild(strongEl);
+        pEl.appendChild(document.createTextNode(`: ${comment.body}`));
+
+        // creating list item
+        const liEl = document.createElement('li');
+        liEl.appendChild(pEl);
+        ulEl.appendChild(liEl);
+    }
+    return ulEl;
+}
+
+function onCommentsReceived(postId, that) {
+    commentsDivEl.style.display = 'block';
+    const text = that.responseText;
+    const comments = JSON.parse(text);
+
+    const ulList = document.getElementsByClassName('comments');
+        for (let i = 0; i < ulList.length; i++) {
+            const comment = ulList[i];
+            if (comment.getAttribute('id') !== postId) {
+                comment.remove();
+            }
+        }
+
+    const divEl = document.getElementById(postId);
+    if (divEl.childNodes.length <= 1) {
+        divEl.appendChild(createCommentsList(comments));
+    }
+}
+
+function onLoadComments() {
+    const el = this;
+    const postId = el.getAttribute('post-id');
+
+    const xhr = new XMLHttpRequest();
+    xhr.addEventListener('load', function() {
+       onCommentsReceived(postId, this);
+    });
+    xhr.open('GET', BASE_URL + '/comments?postId=' + postId);
+    xhr.send();
+}
 
 function createPostsList(posts) {
     const ulEl = document.createElement('ul');
@@ -18,8 +74,13 @@ function createPostsList(posts) {
         pEl.appendChild(strongEl);
         pEl.appendChild(document.createTextNode(`: ${post.body}`));
 
+        const postIdAttr = post.id;
+        strongEl.setAttribute('post-id', postIdAttr);
+        strongEl.addEventListener('click', onLoadComments);
+
         // creating list item
         const liEl = document.createElement('li');
+        liEl.setAttribute('id', postIdAttr)
         liEl.appendChild(pEl);
 
         ulEl.appendChild(liEl);
@@ -127,6 +188,7 @@ function onLoadUsers() {
 document.addEventListener('DOMContentLoaded', (event) => {
     usersDivEl = document.getElementById('users');
     postsDivEl = document.getElementById('posts');
+    commentsDivEl = document.getElementById('comments');
     loadButtonEl = document.getElementById('load-users');
     loadButtonEl.addEventListener('click', onLoadUsers);
 });
