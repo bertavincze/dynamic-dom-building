@@ -10,7 +10,7 @@ The last command will start-up a very simple webserver and will serve files from
 = Tasks:
 
 * I'd like to click on individual posts to see related comments directly below the post I clicked.
-  Clicking on another post I'd like to see comments for this post only, hide the earlier post's comments.
+  Clicking on another post I'd like to see comments for this post only, hide the earlier post's comments. -> DONE
 * I'd like to see a user's albums (picture gallery), all of them.
   I'd like to see available albums for a user, and only that, posts shouldn't be visible in this case.
   I'd like to see albums similar to the way posts are shown currently.
