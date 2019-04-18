@@ -1,9 +1,12 @@
 #posts {
-    display: none;
+  display: none;
 }
 #posts-content strong {
-    cursor: pointer;
+  cursor: pointer;
 }
 #comments {
-    display: none;
+  display: none;
+}
+#albums {
+  display: none;
 }
