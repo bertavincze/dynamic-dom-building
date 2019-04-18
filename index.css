@@ -10,3 +10,12 @@
 #albums {
   display: none;
 }
+#albums-content strong {
+  cursor: pointer;
+}
+.photos, .photos li {
+  list-style: none;
+  display: inline-block;
+  margin: 0px;
+  padding: 0px;
+}
