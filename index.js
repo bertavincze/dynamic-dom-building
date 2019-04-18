@@ -5,6 +5,60 @@ let postsDivEl;
 let loadButtonEl;
 let albumsDivEl;
 
+function createPhotosList(photos) {
+  const ulEl = document.createElement('ul');
+  ulEl.classList.add('photos');
+
+  for (let i = 0; i < photos.length; i++) {
+    const photo = photos[i];
+    ulEl.setAttribute('id', photo.albumId);
+
+    // creating paragraph
+    const aEl = document.createElement('a');
+    aEl.setAttribute('href', photo.url);
+    const imgEl = document.createElement('img');
+    imgEl.setAttribute('src', photo.thumbnailUrl);
+    aEl.appendChild(imgEl);
+    // creating list item
+    const liEl = document.createElement('li');
+    liEl.appendChild(aEl);
+
+    ulEl.appendChild(liEl);
+  }
+
+  return ulEl;
+}
+
+function onPhotosReceived() {
+  const text = this.responseText;
+  const photos = JSON.parse(text);
+
+  const albumId = photos[0].albumId;
+
+  const ulList = document.getElementsByClassName('photos');
+  for (let i = 0; i < ulList.length; i++) {
+    const photo = ulList[i];
+    if (photo.getAttribute('id') !== albumId) {
+      photo.remove();
+    }
+  }
+
+  const divEl = document.getElementById(albumId);
+  if (divEl.childNodes.length <= 1) {
+    divEl.appendChild(createPhotosList(photos));
+  }
+}
+
+function onLoadPhotos() {
+  const el = this;
+  const albumId = el.getAttribute('id');
+
+  const xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', onPhotosReceived);
+  xhr.open('GET', BASE_URL + '/photos?albumId=' + albumId);
+  xhr.send();
+}
+
 function onLoadAlbums() {
   const el = this;
   const userId = el.getAttribute('data-user-id');
@@ -43,7 +97,8 @@ function createAlbumsList(albums) {
     pEl.appendChild(strongEl);
 
     const albumIdAttr = album.id;
-    strongEl.setAttribute('album-id', albumIdAttr);
+    strongEl.setAttribute('id', albumIdAttr);
+    strongEl.addEventListener('click', onLoadPhotos);
 
     // creating list item
     const liEl = document.createElement('li');
