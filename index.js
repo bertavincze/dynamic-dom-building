@@ -2,193 +2,273 @@ const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
 let usersDivEl;
 let postsDivEl;
-let commentsDivEl;
 let loadButtonEl;
+let albumsDivEl;
 
-function createCommentsList(comments) {
-    const ulEl = document.createElement('ul');
-    ulEl.classList.add('comments');
+function onLoadAlbums() {
+  const el = this;
+  const userId = el.getAttribute('data-user-id');
 
-    for (let i = 0; i < comments.length; i++) {
-        const comment = comments[i];
-        ulEl.setAttribute('id', comment.postId);
-
-        // creating paragraph
-        const strongEl = document.createElement('strong');
-        strongEl.textContent = comment.name;
-
-        const pEl = document.createElement('p');
-        pEl.appendChild(strongEl);
-        pEl.appendChild(document.createTextNode(`: ${comment.body}`));
-
-        // creating list item
-        const liEl = document.createElement('li');
-        liEl.appendChild(pEl);
-        ulEl.appendChild(liEl);
-    }
-    return ulEl;
+  const xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', onAlbumsReceived);
+  xhr.open('GET', BASE_URL + '/albums?userId=' + userId);
+  xhr.send();
 }
 
-function onCommentsReceived(postId, that) {
-    commentsDivEl.style.display = 'block';
-    const text = that.responseText;
-    const comments = JSON.parse(text);
+function onAlbumsReceived() {
+  postsDivEl.style.display = 'none';
+  albumsDivEl.style.display = 'block';
 
-    const ulList = document.getElementsByClassName('comments');
-        for (let i = 0; i < ulList.length; i++) {
-            const comment = ulList[i];
-            if (comment.getAttribute('id') !== postId) {
-                comment.remove();
-            }
-        }
+  const text = this.responseText;
+  const albums = JSON.parse(text);
 
-    const divEl = document.getElementById(postId);
-    if (divEl.childNodes.length <= 1) {
-        divEl.appendChild(createCommentsList(comments));
+  const divEl = document.getElementById('albums-content');
+  while (divEl.firstChild) {
+    divEl.removeChild(divEl.firstChild);
+  }
+  divEl.appendChild(createAlbumsList(albums));
+}
+
+function createAlbumsList(albums) {
+  const ulEl = document.createElement('ul');
+
+  for (let i = 0; i < albums.length; i++) {
+    const album = albums[i];
+
+    // creating paragraph
+    const strongEl = document.createElement('strong');
+    strongEl.textContent = album.title;
+
+    const pEl = document.createElement('p');
+    pEl.appendChild(strongEl);
+
+    const albumIdAttr = album.id;
+    strongEl.setAttribute('album-id', albumIdAttr);
+
+    // creating list item
+    const liEl = document.createElement('li');
+    liEl.appendChild(pEl);
+
+    ulEl.appendChild(liEl);
+  }
+
+  return ulEl;
+}
+
+function createCommentsList(comments) {
+  const ulEl = document.createElement('ul');
+  ulEl.classList.add('comments');
+
+  const h3El = document.createElement('h3');
+  h3El.textContent = 'Comments';
+  ulEl.appendChild(h3El);
+
+  for (let i = 0; i < comments.length; i++) {
+    const comment = comments[i];
+    ulEl.setAttribute('id', comment.postId);
+
+    // creating paragraph
+    const strongEl = document.createElement('strong');
+    strongEl.textContent = comment.name;
+
+    const pEl = document.createElement('p');
+    pEl.appendChild(strongEl);
+    pEl.appendChild(document.createTextNode(`: ${comment.body}`));
+
+    const iEl = document.createElement('i');
+    iEl.textContent = comment.email;
+
+    // creating list item
+    const liEl = document.createElement('li');
+    liEl.appendChild(pEl);
+    liEl.appendChild(iEl);
+    ulEl.appendChild(liEl);
+  }
+  return ulEl;
+}
+
+function onCommentsReceived() {
+  const text = this.responseText;
+  const comments = JSON.parse(text);
+
+  const postId = comments[0].postId;
+
+  const ulList = document.getElementsByClassName('comments');
+  for (let i = 0; i < ulList.length; i++) {
+    const comment = ulList[i];
+    if (comment.getAttribute('id') !== postId) {
+      comment.remove();
     }
+  }
+
+  const divEl = document.getElementById(postId);
+  if (divEl.childNodes.length <= 1) {
+    divEl.appendChild(createCommentsList(comments));
+  }
 }
 
 function onLoadComments() {
-    const el = this;
-    const postId = el.getAttribute('post-id');
+  const el = this;
+  const postId = el.getAttribute('post-id');
 
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', function() {
-       onCommentsReceived(postId, this);
-    });
-    xhr.open('GET', BASE_URL + '/comments?postId=' + postId);
-    xhr.send();
+  const xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', onCommentsReceived);
+  xhr.open('GET', BASE_URL + '/comments?postId=' + postId);
+  xhr.send();
 }
 
 function createPostsList(posts) {
-    const ulEl = document.createElement('ul');
+  const ulEl = document.createElement('ul');
 
-    for (let i = 0; i < posts.length; i++) {
-        const post = posts[i];
+  for (let i = 0; i < posts.length; i++) {
+    const post = posts[i];
 
-        // creating paragraph
-        const strongEl = document.createElement('strong');
-        strongEl.textContent = post.title;
+    // creating paragraph
+    const strongEl = document.createElement('strong');
+    strongEl.textContent = post.title;
 
-        const pEl = document.createElement('p');
-        pEl.appendChild(strongEl);
-        pEl.appendChild(document.createTextNode(`: ${post.body}`));
+    const pEl = document.createElement('p');
+    pEl.appendChild(strongEl);
+    pEl.appendChild(document.createTextNode(`: ${post.body}`));
 
-        const postIdAttr = post.id;
-        strongEl.setAttribute('post-id', postIdAttr);
-        strongEl.addEventListener('click', onLoadComments);
+    const postIdAttr = post.id;
+    strongEl.setAttribute('post-id', postIdAttr);
+    strongEl.addEventListener('click', onLoadComments);
 
-        // creating list item
-        const liEl = document.createElement('li');
-        liEl.setAttribute('id', postIdAttr)
-        liEl.appendChild(pEl);
+    // creating list item
+    const liEl = document.createElement('li');
+    liEl.setAttribute('id', postIdAttr)
+    liEl.appendChild(pEl);
 
-        ulEl.appendChild(liEl);
-    }
+    ulEl.appendChild(liEl);
+  }
 
-    return ulEl;
+  return ulEl;
 }
 
 function onPostsReceived() {
-    postsDivEl.style.display = 'block';
+  postsDivEl.style.display = 'block';
+  albumsDivEl.style.display = 'none';
 
-    const text = this.responseText;
-    const posts = JSON.parse(text);
+  const text = this.responseText;
+  const posts = JSON.parse(text);
 
-    const divEl = document.getElementById('posts-content');
-    while (divEl.firstChild) {
-        divEl.removeChild(divEl.firstChild);
-    }
-    divEl.appendChild(createPostsList(posts));
+  const divEl = document.getElementById('posts-content');
+  while (divEl.firstChild) {
+    divEl.removeChild(divEl.firstChild);
+  }
+  divEl.appendChild(createPostsList(posts));
 }
 
 function onLoadPosts() {
-    const el = this;
-    const userId = el.getAttribute('data-user-id');
+  const el = this;
+  const userId = el.getAttribute('data-user-id');
 
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', onPostsReceived);
-    xhr.open('GET', BASE_URL + '/posts?userId=' + userId);
-    xhr.send();
+  const xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', onPostsReceived);
+  xhr.open('GET', BASE_URL + '/posts?userId=' + userId);
+  xhr.send();
 }
 
 function createUsersTableHeader() {
-    const idTdEl = document.createElement('td');
-    idTdEl.textContent = 'Id';
+  const idTdEl = document.createElement('td');
+  idTdEl.textContent = 'Id';
 
-    const nameTdEl = document.createElement('td');
-    nameTdEl.textContent = 'Name';
+  const nameTdEl = document.createElement('td');
+  nameTdEl.textContent = 'Name';
 
-    const trEl = document.createElement('tr');
-    trEl.appendChild(idTdEl);
-    trEl.appendChild(nameTdEl);
+  const buttonOneTdEl = document.createElement('td');
+  buttonOneTdEl.textContent = 'Posts';
 
-    const theadEl = document.createElement('thead');
-    theadEl.appendChild(trEl);
-    return theadEl;
+  const buttonTwoTdEl = document.createElement('td');
+  buttonTwoTdEl.textContent = 'Albums';
+
+  const trEl = document.createElement('tr');
+  trEl.appendChild(idTdEl);
+  trEl.appendChild(nameTdEl);
+  trEl.appendChild(buttonOneTdEl);
+  trEl.appendChild(buttonTwoTdEl);
+
+  const theadEl = document.createElement('thead');
+  theadEl.appendChild(trEl);
+  return theadEl;
 }
 
 function createUsersTableBody(users) {
-    const tbodyEl = document.createElement('tbody');
+  const tbodyEl = document.createElement('tbody');
 
-    for (let i = 0; i < users.length; i++) {
-        const user = users[i];
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
 
-        // creating id cell
-        const idTdEl = document.createElement('td');
-        idTdEl.textContent = user.id;
+    // creating id cell
+    const idTdEl = document.createElement('td');
+    idTdEl.textContent = user.id;
 
-        // creating name cell
-        const dataUserIdAttr = document.createAttribute('data-user-id');
-        dataUserIdAttr.value = user.id;
+    // creating name cell
+    const dataUserIdAttr = document.createAttribute('data-user-id');
+    dataUserIdAttr.value = user.id;
+    const dataUserAlbumIdAttr = document.createAttribute('data-user-id');
+    dataUserAlbumIdAttr.value = user.id;
 
-        const buttonEl = document.createElement('button');
-        buttonEl.textContent = user.name;
-        buttonEl.setAttributeNode(dataUserIdAttr);
-        buttonEl.addEventListener('click', onLoadPosts);
+    const usernameTdEl = document.createElement('td');
+    usernameTdEl.textContent = user.name;
 
-        const nameTdEl = document.createElement('td');
-        nameTdEl.appendChild(buttonEl);
+    const buttonEl = document.createElement('button');
+    buttonEl.textContent = 'View all posts';
+    buttonEl.setAttributeNode(dataUserIdAttr);
+    buttonEl.addEventListener('click', onLoadPosts);
 
-        // creating row
-        const trEl = document.createElement('tr');
-        trEl.appendChild(idTdEl);
-        trEl.appendChild(nameTdEl);
+    const buttonAlbumEl = document.createElement('button');
+    buttonAlbumEl.textContent = 'View all albums';
+    buttonAlbumEl.setAttributeNode(dataUserAlbumIdAttr);
+    buttonAlbumEl.addEventListener('click', onLoadAlbums);
 
-        tbodyEl.appendChild(trEl);
-    }
+    const buttonOneTdEl = document.createElement('td');
+    buttonOneTdEl.appendChild(buttonEl);
+    const buttonTwoTdEl = document.createElement('td');
+    buttonTwoTdEl.appendChild(buttonAlbumEl);
 
-    return tbodyEl;
+    // creating row
+    const trEl = document.createElement('tr');
+    trEl.appendChild(idTdEl);
+    trEl.appendChild(usernameTdEl);
+    trEl.appendChild(buttonOneTdEl);
+    trEl.appendChild(buttonTwoTdEl);
+
+    tbodyEl.appendChild(trEl);
+  }
+
+  return tbodyEl;
 }
 
 function createUsersTable(users) {
-    const tableEl = document.createElement('table');
-    tableEl.appendChild(createUsersTableHeader());
-    tableEl.appendChild(createUsersTableBody(users));
-    return tableEl;
+  const tableEl = document.createElement('table');
+  tableEl.appendChild(createUsersTableHeader());
+  tableEl.appendChild(createUsersTableBody(users));
+  return tableEl;
 }
 
 function onUsersReceived() {
-    loadButtonEl.remove();
+  loadButtonEl.remove();
 
-    const text = this.responseText;
-    const users = JSON.parse(text);
+  const text = this.responseText;
+  const users = JSON.parse(text);
 
-    const divEl = document.getElementById('users-content');
-    divEl.appendChild(createUsersTable(users));
+  const divEl = document.getElementById('users-content');
+  divEl.appendChild(createUsersTable(users));
 }
 
 function onLoadUsers() {
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', onUsersReceived);
-    xhr.open('GET', BASE_URL + '/users');
-    xhr.send();
+  const xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', onUsersReceived);
+  xhr.open('GET', BASE_URL + '/users');
+  xhr.send();
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    usersDivEl = document.getElementById('users');
-    postsDivEl = document.getElementById('posts');
-    commentsDivEl = document.getElementById('comments');
-    loadButtonEl = document.getElementById('load-users');
-    loadButtonEl.addEventListener('click', onLoadUsers);
+  usersDivEl = document.getElementById('users');
+  postsDivEl = document.getElementById('posts');
+  albumsDivEl = document.getElementById('albums');
+  loadButtonEl = document.getElementById('load-users');
+  loadButtonEl.addEventListener('click', onLoadUsers);
 });
